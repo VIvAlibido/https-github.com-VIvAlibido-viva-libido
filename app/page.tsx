@@ -1,113 +1,195 @@
-import Image from 'next/image';
+"use client";
 
-export default function Home() {
+import { useEffect, useState, useCallback } from "react";
+import StatusBadge from "./components/StatusBadge";
+
+interface MuxStatus {
+  running: boolean;
+  pid?: number;
+  uptime?: number;
+  timestamp?: string;
+  frameCount?: number;
+}
+
+interface Statistics {
+  ensembleLabel: string;
+  cuUsed: number;
+  cuTotal: number;
+  subchannels: Array<{
+    id: string;
+    label: string;
+    bitrate: number;
+    bufferState: number;
+    overruns: number;
+    underruns: number;
+    inputState: string;
+  }>;
+}
+
+export default function Dashboard() {
+  const [status, setStatus] = useState<MuxStatus | null>(null);
+  const [stats, setStats] = useState<Statistics | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    const [statusRes, statsRes] = await Promise.all([
+      fetch("/api/status"),
+      fetch("/api/statistics"),
+    ]);
+    setStatus(await statusRes.json());
+    setStats(await statsRes.json());
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  async function toggleMux() {
+    setLoading(true);
+    const action = status?.running ? "stop" : "start";
+    const res = await fetch("/api/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    setStatus(await res.json());
+    setLoading(false);
+  }
+
+  function formatUptime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h}h ${m}m ${s}s`;
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+
+      {/* Status card */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="text-sm text-gray-500 mb-1">Multiplexer Status</div>
+          <div className="flex items-center justify-between">
+            <StatusBadge status={status?.running ? "running" : "stopped"} />
+            <button
+              onClick={toggleMux}
+              disabled={loading}
+              className={`px-4 py-1.5 rounded text-sm font-medium text-white transition-colors ${
+                status?.running
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-emerald-500 hover:bg-emerald-600"
+              } disabled:opacity-50`}
+            >
+              {loading ? "..." : status?.running ? "Stop" : "Start"}
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="text-sm text-gray-500 mb-1">Uptime</div>
+          <div className="text-lg font-semibold">
+            {status?.running ? formatUptime(status.uptime || 0) : "--"}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="text-sm text-gray-500 mb-1">PID</div>
+          <div className="text-lg font-semibold font-mono">
+            {status?.pid || "--"}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="text-sm text-gray-500 mb-1">Frames Generated</div>
+          <div className="text-lg font-semibold font-mono">
+            {status?.frameCount?.toLocaleString() || "0"}
+          </div>
         </div>
       </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
+      {/* Capacity */}
+      {stats && (
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <h2 className="text-lg font-semibold mb-3">
+            Ensemble: {stats.ensembleLabel}
           </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+          <div className="mb-2">
+            <div className="flex justify-between text-sm mb-1">
+              <span>Capacity Units (CU)</span>
+              <span>
+                {stats.cuUsed} / {stats.cuTotal} CU ({Math.round((stats.cuUsed / stats.cuTotal) * 100)}%)
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className={`h-3 rounded-full transition-all ${
+                  stats.cuUsed / stats.cuTotal > 0.9
+                    ? "bg-red-500"
+                    : stats.cuUsed / stats.cuTotal > 0.7
+                    ? "bg-yellow-500"
+                    : "bg-emerald-500"
+                }`}
+                style={{ width: `${Math.min(100, (stats.cuUsed / stats.cuTotal) * 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+      {/* Subchannel status table */}
+      {stats && stats.subchannels.length > 0 && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-4 py-3 border-b">
+            <h2 className="text-lg font-semibold">Subchannel Status</h2>
+          </div>
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-4 py-2 text-sm font-medium text-gray-500">ID</th>
+                <th className="text-left px-4 py-2 text-sm font-medium text-gray-500">Bitrate</th>
+                <th className="text-left px-4 py-2 text-sm font-medium text-gray-500">Buffer</th>
+                <th className="text-left px-4 py-2 text-sm font-medium text-gray-500">Overruns</th>
+                <th className="text-left px-4 py-2 text-sm font-medium text-gray-500">Underruns</th>
+                <th className="text-left px-4 py-2 text-sm font-medium text-gray-500">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.subchannels.map((sc) => (
+                <tr key={sc.id} className="border-t">
+                  <td className="px-4 py-2 font-mono text-sm">{sc.id}</td>
+                  <td className="px-4 py-2 text-sm">{sc.bitrate} kbps</td>
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full bg-emerald-500"
+                          style={{ width: `${sc.bufferState}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500">{sc.bufferState}%</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 text-sm">{sc.overruns}</td>
+                  <td className="px-4 py-2 text-sm">{sc.underruns}</td>
+                  <td className="px-4 py-2">
+                    <StatusBadge status={sc.inputState as "ok" | "error" | "disconnected" | "buffering"} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      {stats && stats.subchannels.length === 0 && (
+        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+          <p>Geen subchannels geconfigureerd. Ga naar Subchannels om er een toe te voegen.</p>
+        </div>
+      )}
+    </div>
   );
 }
