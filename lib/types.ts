@@ -30,6 +30,14 @@ export interface Service {
   shortlabel: string;
   pty: number; // programme type
   language: number;
+  // Meta content (DLS - Dynamic Label Segment)
+  dlsText?: string; // scrolling text on receiver display
+  dlsAutoFromIcecast?: boolean; // auto-fetch from Icecast metadata
+  icecastUrl?: string; // Icecast server URL for metadata
+  // Volume normalization
+  volumeNormalize?: boolean; // enable loudness normalization
+  volumeTarget?: number; // target loudness in LUFS (default -23)
+  volumeLimiter?: boolean; // enable peak limiter
 }
 
 export interface Subchannel {
