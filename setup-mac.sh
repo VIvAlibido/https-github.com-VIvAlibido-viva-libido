@@ -99,3 +99,4 @@ PLIST
     echo "  launchctl start com.vivalibido.dabmux    (starten)"
     echo "  launchctl unload $PLIST_PATH             (verwijderen)"
 fi
+
