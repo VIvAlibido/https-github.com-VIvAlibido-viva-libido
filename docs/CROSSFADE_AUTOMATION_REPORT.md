@@ -14,12 +14,21 @@ uitzending aanstuurt: muziekplanning, jingles, reclame, en overgangen.
 **Commerciële systemen:**
 - **RCS Zetta / Selector**: Marktleider. Selector plant muziek op basis van
   rotatie, tempo, stemming en flow-regels. Zetta voert de playlist uit en
-  beheert overgangen via vooraf ingestelde intro/outro markers.
-- **WideOrbit Automation**: Gebruikt "segue editor" waar producers handmatig
-  crossfade-punten instellen per track-paar.
+  beheert overgangen via vooraf ingestelde intro/outro markers. Zetta biedt
+  meerdere chain types: *Segue* (automatisch), *Auto-Post* (jingle eindigt
+  exact op intro van song), en *Link-Song* (Early Segue overlap).
+- **WideOrbit WO Aurora**: Gecentraliseerd content management met automatische
+  distributie, integratie met MusicMaster voor song replacement, en een
+  visuele "segue editor" voor crossfade-punten.
 - **iHeartMedia**: Gebruikt eigen automation stack op basis van RCS, met
   AI-aangedreven flow-optimalisatie voor 850+ stations.
-- **ENCO DAD**: Real-time automation met frame-accurate crossfades.
+- **RadioBOSS**: Past crossfades toe in een prioriteitshiërarchie:
+  Segue Editor > Track Tool > File Type > General crossfades. Triggert de
+  volgende track wanneer volume onder -14 dB zakt (configureerbaar).
+- **StationPlaylist**: File Scan functie berekent automatisch Cue, Overlap
+  en Segue posities op basis van volume-analyse.
+- **Rivendell / RadioDJ**: Open-source alternatieven met threshold-based
+  crossfade (Start: -25 dB, Mix: -15 dB, End: -28 dB).
 
 ### Hoe Crossfades Traditioneel Werken
 
@@ -27,8 +36,9 @@ Traditionele radio automation gebruikt **vaste markers** per track:
 
 ```
 Track metadata:
+  - Cue In / Cue Out: waar track daadwerkelijk begint/eindigt
   - Intro time: 4.2s (instrumentaal begin)
-  - Segue point: 3:28.5 (waar fade-out begint)
+  - Segue point: 3:28.5 (waar fade-out / overlap begint)
   - Outro type: fade / cold-end
   - Hook: 0:45-1:15
 ```
@@ -38,6 +48,23 @@ De overlap is: `track_A.duration - track_A.segue_point + track_B.intro_time`.
 
 **Beperking**: Dit is per-track geconfigureerd, niet per track-PAAR. Elke
 overgang klinkt hetzelfde ongeacht welke tracks op elkaar volgen.
+
+### BPM/Harmonische Mixing in de Industrie
+
+**Belangrijk inzicht uit onderzoek**: BPM-based en key-based (harmonische)
+crossfading is **grotendeels afwezig** in traditionele radio automation.
+Dit is een feature uit DJ-software (DJ.Studio, rekordbox, Traktor, Mixxx).
+
+- **DJ.Studio**: Analyseert miljoenen mogelijke playlist-volgordes, scoort
+  elke op BPM + key compatibiliteit via het Camelot Wheel.
+- **SetFlow**: Gebruikt harmonische compatibiliteit als 35% van de
+  transitie-score (hoogste gewicht), BPM matching 25%, energy flow 15%.
+- **Mixed In Key**: De grondlegger van het Camelot Wheel systeem.
+
+Traditionele radio lost dit op in de **planning-fase** (Selector/MusicMaster
+plant tracks op flow/energy), niet in de **playout-fase**. Hearty's aanpak
+— harmonische crossfade berekening in de playout server — is dus innovatief
+vergeleken met de industrie-standaard.
 
 ---
 
@@ -83,6 +110,36 @@ Voorbeeld annotatie URI:
 ```
 annotate:liq_cross_duration="8.0",liq_fade_out="8.0",liq_fade_in="0.0":/music/track.mp3
 ```
+
+### Liquidsoap `cross.smart` Gedrag
+
+Liquidsoap's ingebouwde `cross.smart` operator (voorheen `smart_crossfade`)
+analyseert het gemiddelde dB-volume aan het einde van Track A en begin van
+Track B, en selecteert automatisch een transitie-strategie:
+
+| Situatie | Actie |
+|---|---|
+| Beide tracks stil & vergelijkbaar (≤-32 dB, verschil ≤4 dB) | Volledige crossfade met fade-in + fade-out |
+| Inkomende track significant luider | Alleen fade-out op oude track; nieuwe track op vol volume |
+| Uitgaande track significant luider | Alleen fade-in op nieuwe track |
+| Uitgaande stil, inkomende luid | Simpele overlap, geen fades |
+| Beide tracks te luid of te verschillend | Geen overlap — back-to-back |
+
+Defaults: duration=5s, fade_in=3s, fade_out=3s, high=-15dB, medium=-32dB.
+Fades gebruiken een **sinusoïdale curve**.
+
+**Radio-standaard** (AzuraCast community best practice): zero fade-in, 3.5s
+fade-out, -15 dB crossing threshold (EBU R128), 4.0s maximum transitie window.
+
+**Hearty's aanpak**: Wij overrulen `cross.smart` door per-track annotaties
+mee te geven vanuit de server. Hierdoor bepaalt onze harmonische engine de
+crossfade, niet Liquidsoap's volume-based heuristiek.
+
+### Let op: Liquidsoap v2.2.4+ Wijziging
+
+Sinds v2.2.4 vindt de fade-out plaats op het punt aangegeven door
+`liq_cross_duration` in plaats van het natuurlijke einde. Gebruik eventueel
+`liq_fade_out_delay` om het oude overlap-gedrag te herstellen.
 
 ---
 
@@ -261,3 +318,20 @@ aanzienlijk beter dan de industrie-standaard.
 2. **Cue point detection**: Automatische intro/outro detectie via ML
 3. **Genre-aware mixing**: Verschillende crossfade strategieën per genre
 4. **Realtime beatgrid**: Warp-based synchronisatie (complex, DJ-niveau)
+
+---
+
+## 9. Bronnen
+
+- RCS Zetta — rcsworks.com/zetta
+- WideOrbit WO Aurora — wideorbit.com/products/automation-radio
+- RadioBOSS Crossfading Manual — manual.djsoft.net/radioboss/en/crossfades.htm
+- StationPlaylist Track Tool — stationplaylist.com/TrackTool.pdf
+- Liquidsoap Smart Crossfade Docs — liquidsoap.info/doc-2.2.5/crossfade.html
+- AzuraCast/Liquidsoap Crossfading Discussion — github.com/AzuraCast/AzuraCast/discussions/6252
+- Liquidsoap Cue and Crossfade Metadata — mcfiredrill.github.io/blog/liquidsoap-cue-and-cross-fade-metadata
+- DJ.Studio Automix / Harmonize — dj.studio/automix
+- Mixed In Key Harmonic Mixing Guide — mixedinkey.com/harmonic-mixing-guide
+- SetFlow Harmonic Mixing with Camelot Wheel — setflow.app/blog/harmonic-mixing-camelot-wheel
+- RadioDJ Crossfade Settings — djgarybaldy.co.uk/radiodj-crossfade-settings
+- Mixxx AutoDJ Intro/Outro Markers — github.com/mixxxdj/mixxx/pull/2103
