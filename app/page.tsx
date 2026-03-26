@@ -14,18 +14,18 @@ export default function Dashboard() {
 
   const runPipeline = async () => {
     setLoading(true);
-    setStatus('Running pipeline... This may take a few minutes.');
+    setStatus('Pipeline draait... Dit kan enkele minuten duren.');
     try {
       const res = await fetch('/api/cron', { method: 'POST' });
       const result = await res.json();
       if (result.status === 'complete') {
-        setStatus(`Done! ${result.articles} articles, ${result.socialPosts} social posts, ${result.radioBulletins} radio bulletins`);
+        setStatus(`Klaar! ${result.articles} artikelen, ${result.socialPosts} social media posts, ${result.radioBulletins} radio bulletins`);
         loadTodayData();
       } else {
-        setStatus(`Error: ${result.error}`);
+        setStatus(`Fout: ${result.error}`);
       }
     } catch (err) {
-      setStatus(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setStatus(`Mislukt: ${err instanceof Error ? err.message : 'Onbekende fout'}`);
     } finally {
       setLoading(false);
     }
@@ -59,16 +59,16 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Ibiza News Dashboard</h1>
-        <p className="text-gray-500 mt-1">Daily news aggregation for Ibiza & Formentera</p>
+        <h1 className="text-3xl font-bold text-gray-900">Ibiza Nieuws Dashboard</h1>
+        <p className="text-gray-500 mt-1">Dagelijkse nieuwsverzameling voor Ibiza & Formentera</p>
       </div>
 
       {/* Pipeline Control */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-gray-900">Daily Pipeline</h2>
-            <p className="text-sm text-gray-500">Scrape news, generate social posts & radio bulletins</p>
+            <h2 className="font-semibold text-gray-900">Dagelijkse Pipeline</h2>
+            <p className="text-sm text-gray-500">Nieuws scrapen, social media posts & radio bulletins genereren</p>
           </div>
           <button
             onClick={runPipeline}
@@ -79,13 +79,13 @@ export default function Dashboard() {
                 : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {loading ? 'Running...' : 'Run Pipeline Now'}
+            {loading ? 'Bezig...' : 'Start Pipeline'}
           </button>
         </div>
         {status && (
           <div className={`mt-4 p-3 rounded-lg text-sm ${
-            status.startsWith('Done') ? 'bg-green-50 text-green-700' :
-            status.startsWith('Error') || status.startsWith('Failed') ? 'bg-red-50 text-red-700' :
+            status.startsWith('Klaar') ? 'bg-green-50 text-green-700' :
+            status.startsWith('Fout') || status.startsWith('Mislukt') ? 'bg-red-50 text-red-700' :
             'bg-blue-50 text-blue-700'
           }`}>
             {status}
@@ -96,27 +96,27 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <StatCard
-          title="Articles"
+          title="Artikelen"
           value={data?.articles.length || 0}
-          subtitle="Top news items"
+          subtitle="Beste nieuwsberichten"
           color="blue"
         />
         <StatCard
-          title="Social Posts"
+          title="Social Media Posts"
           value={data?.socialPosts.length || 0}
-          subtitle="3 platforms x 3 languages"
+          subtitle="3 platforms x 3 talen"
           color="pink"
         />
         <StatCard
           title="Radio Bulletins"
           value={data?.radioBulletins.length || 0}
-          subtitle="5 items x 3 languages"
+          subtitle="5 items x 3 talen"
           color="amber"
         />
         <StatCard
           title="Status"
           value={data?.pipelineStatus || 'idle'}
-          subtitle={data?.date || 'No data yet'}
+          subtitle={data?.date || 'Nog geen data'}
           color="green"
           isText
         />
@@ -125,7 +125,7 @@ export default function Dashboard() {
       {/* Quick Preview */}
       {data && data.articles.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Today&apos;s Top Stories</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">Top Verhalen van Vandaag</h2>
           <div className="space-y-3">
             {data.articles.slice(0, 5).map(article => (
               <div key={article.id} className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0">
@@ -144,8 +144,8 @@ export default function Dashboard() {
 
       {!data?.articles.length && !loading && (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">No data yet for today</p>
-          <p className="text-sm mt-1">Click &quot;Run Pipeline Now&quot; to get started</p>
+          <p className="text-lg">Nog geen data voor vandaag</p>
+          <p className="text-sm mt-1">Klik op &quot;Start Pipeline&quot; om te beginnen</p>
         </div>
       )}
     </div>

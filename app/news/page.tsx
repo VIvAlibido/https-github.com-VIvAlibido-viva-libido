@@ -22,16 +22,16 @@ export default function NewsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">News</h1>
-        <p className="text-gray-500 mt-1">Top 10 Ibiza & Formentera stories</p>
+        <h1 className="text-3xl font-bold text-gray-900">Nieuws</h1>
+        <p className="text-gray-500 mt-1">Top 10 Ibiza & Formentera verhalen</p>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400">Loading...</div>
+        <div className="text-center py-16 text-gray-400">Laden...</div>
       ) : articles.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">No articles yet</p>
-          <p className="text-sm mt-1">Run the pipeline from the Dashboard first</p>
+          <p className="text-lg">Nog geen artikelen</p>
+          <p className="text-sm mt-1">Start eerst de pipeline via het Dashboard</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

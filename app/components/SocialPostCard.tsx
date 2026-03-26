@@ -22,7 +22,7 @@ export default function SocialPostCard({ post }: { post: SocialPost }) {
           <span className={`px-2 py-0.5 rounded text-xs font-medium ${style.color}`}>
             {style.label}
           </span>
-          <span className="text-gray-400 text-xs">{post.text.length} chars</span>
+          <span className="text-gray-400 text-xs">{post.text.length} tekens</span>
         </div>
         <CopyButton text={fullText} />
       </div>

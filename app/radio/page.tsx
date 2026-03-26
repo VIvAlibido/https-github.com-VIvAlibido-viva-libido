@@ -39,7 +39,7 @@ export default function RadioPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Radio Bulletins</h1>
-        <p className="text-gray-500 mt-1">2-minute news bulletin for Ibiza radio</p>
+        <p className="text-gray-500 mt-1">2-minuten nieuwsbulletin voor Ibiza radio</p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -47,19 +47,19 @@ export default function RadioPage() {
         {filtered.length > 0 && (
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500">
-              {totalWords} words | ~{totalSeconds}s total
+              {totalWords} woorden | ~{totalSeconds}s totaal
             </span>
-            <CopyButton text={fullScript} label="Copy Full Script" />
+            <CopyButton text={fullScript} label="Kopieer Volledig Script" />
           </div>
         )}
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400">Loading...</div>
+        <div className="text-center py-16 text-gray-400">Laden...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">No radio bulletins yet</p>
-          <p className="text-sm mt-1">Run the pipeline from the Dashboard first</p>
+          <p className="text-lg">Nog geen radio bulletins</p>
+          <p className="text-sm mt-1">Start eerst de pipeline via het Dashboard</p>
         </div>
       ) : (
         <div className="space-y-4">

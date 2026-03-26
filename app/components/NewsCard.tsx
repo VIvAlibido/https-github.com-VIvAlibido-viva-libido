@@ -37,7 +37,7 @@ export default function NewsCard({ article }: { article: RankedArticle }) {
             rel="noopener noreferrer"
             className="text-blue-600 text-sm hover:underline"
           >
-            Read original
+            Lees origineel
           </a>
         </div>
         {article.imageCredit && (

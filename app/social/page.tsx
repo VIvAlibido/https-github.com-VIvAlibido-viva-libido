@@ -6,7 +6,7 @@ import LanguageTabs from '../components/LanguageTabs';
 import SocialPostCard from '../components/SocialPostCard';
 
 const platforms: { value: Platform | 'all'; label: string }[] = [
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'Alle' },
   { value: 'instagram', label: 'Instagram' },
   { value: 'facebook', label: 'Facebook' },
   { value: 'app', label: 'App' },
@@ -38,8 +38,8 @@ export default function SocialPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Social Posts</h1>
-        <p className="text-gray-500 mt-1">Ready-to-publish content for Instagram, Facebook & App</p>
+        <h1 className="text-3xl font-bold text-gray-900">Social Media Posts</h1>
+        <p className="text-gray-500 mt-1">Publiceerbare content voor Instagram, Facebook & App</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -62,11 +62,11 @@ export default function SocialPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400">Loading...</div>
+        <div className="text-center py-16 text-gray-400">Laden...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">No social posts yet</p>
-          <p className="text-sm mt-1">Run the pipeline from the Dashboard first</p>
+          <p className="text-lg">Nog geen social media posts</p>
+          <p className="text-sm mt-1">Start eerst de pipeline via het Dashboard</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

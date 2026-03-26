@@ -9,13 +9,13 @@ export default function SettingsPage() {
 
   const testScrape = async () => {
     setScrapeLoading(true);
-    setScrapeStatus('Scraping feeds...');
+    setScrapeStatus('Feeds scrapen...');
     try {
       const res = await fetch('/api/scrape', { method: 'POST' });
       const data = await res.json();
-      setScrapeStatus(`Found ${data.total} articles total, selected top ${data.top10}`);
+      setScrapeStatus(`${data.total} artikelen gevonden, top ${data.top10} geselecteerd`);
     } catch (err) {
-      setScrapeStatus(`Error: ${err instanceof Error ? err.message : 'Failed'}`);
+      setScrapeStatus(`Fout: ${err instanceof Error ? err.message : 'Mislukt'}`);
     } finally {
       setScrapeLoading(false);
     }
@@ -24,8 +24,8 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Configure feeds and test the pipeline</p>
+        <h1 className="text-3xl font-bold text-gray-900">Instellingen</h1>
+        <p className="text-gray-500 mt-1">Configureer feeds en test de pipeline</p>
       </div>
 
       {/* Test Scraper */}
@@ -33,7 +33,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-semibold text-gray-900">Test Scraper</h2>
-            <p className="text-sm text-gray-500">Run just the scrape step to verify feeds are working</p>
+            <p className="text-sm text-gray-500">Voer alleen de scrape-stap uit om te controleren of feeds werken</p>
           </div>
           <button
             onClick={testScrape}
@@ -42,7 +42,7 @@ export default function SettingsPage() {
               scrapeLoading ? 'bg-gray-400' : 'bg-gray-800 hover:bg-gray-900'
             }`}
           >
-            {scrapeLoading ? 'Testing...' : 'Test Scrape'}
+            {scrapeLoading ? 'Testen...' : 'Test Scrape'}
           </button>
         </div>
         {scrapeStatus && (
@@ -52,7 +52,7 @@ export default function SettingsPage() {
 
       {/* Feed Sources */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="font-semibold text-gray-900 mb-4">Configured RSS Feeds</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">Geconfigureerde RSS Feeds</h2>
         <div className="space-y-3">
           {FEED_SOURCES.map((feed, i) => (
             <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
@@ -77,19 +77,19 @@ export default function SettingsPage() {
 
       {/* API Keys Status */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Environment Setup</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">Omgevingsinstellingen</h2>
         <div className="space-y-3 text-sm">
           <div className="flex items-center justify-between py-2">
             <span className="text-gray-600">ANTHROPIC_API_KEY</span>
-            <span className="text-gray-400">Set in .env.local</span>
+            <span className="text-gray-400">Stel in via .env.local</span>
           </div>
           <div className="flex items-center justify-between py-2">
             <span className="text-gray-600">UNSPLASH_ACCESS_KEY</span>
-            <span className="text-gray-400">Set in .env.local (optional)</span>
+            <span className="text-gray-400">Stel in via .env.local (optioneel)</span>
           </div>
           <div className="flex items-center justify-between py-2">
             <span className="text-gray-600">CRON_SECRET</span>
-            <span className="text-gray-400">Set in .env.local (optional)</span>
+            <span className="text-gray-400">Stel in via .env.local (optioneel)</span>
           </div>
         </div>
       </div>

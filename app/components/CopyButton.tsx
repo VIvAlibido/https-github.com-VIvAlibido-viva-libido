@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
+export default function CopyButton({ text, label = 'Kopiëren' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -20,7 +20,7 @@ export default function CopyButton({ text, label = 'Copy' }: { text: string; lab
           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
       }`}
     >
-      {copied ? 'Copied!' : label}
+      {copied ? 'Gekopieerd!' : label}
     </button>
   );
 }

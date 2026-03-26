@@ -12,7 +12,7 @@ export default function RadioBulletinCard({ bulletin }: { bulletin: RadioBulleti
             {bulletin.bulletinNumber}
           </span>
           <div className="text-xs text-gray-400">
-            {bulletin.wordCount} words | ~{bulletin.estimatedSeconds}s
+            {bulletin.wordCount} woorden | ~{bulletin.estimatedSeconds}s
           </div>
         </div>
         <CopyButton text={bulletin.text} />
