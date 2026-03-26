@@ -67,7 +67,8 @@ export const FEED_SOURCES: FeedSource[] = [
 export const MAX_ARTICLES = 10;
 export const RADIO_BULLETIN_COUNT = 5;
 export const WORDS_PER_BULLETIN = 65; // ~25 seconds at broadcast pace
-export const CRON_SCHEDULE = '0 7 * * *'; // 7:00 AM daily
+export const CRON_SCHEDULE = '0 7 * * *'; // 7:00 AM daily - social posts & full pipeline
+export const RADIO_CRON_SCHEDULE = '0 */3 * * *'; // Every 3 hours - radio bulletins only
 
 export const SOCIAL_LIMITS = {
   instagram: 2200,

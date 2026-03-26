@@ -49,6 +49,7 @@ export default function Dashboard() {
         articles: news.articles || [],
         socialPosts: social.posts || [],
         radioBulletins: radio.bulletins || [],
+        radioTimeSlots: radio.timeSlots || [],
         pipelineStatus: news.status || 'pending',
       });
     } catch {

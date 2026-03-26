@@ -15,5 +15,9 @@ export async function GET(request: Request) {
   let bulletins = output.radioBulletins;
   if (language) bulletins = bulletins.filter(b => b.language === language);
 
-  return NextResponse.json({ date: output.date, bulletins });
+  return NextResponse.json({
+    date: output.date,
+    bulletins,
+    timeSlots: output.radioTimeSlots || [],
+  });
 }

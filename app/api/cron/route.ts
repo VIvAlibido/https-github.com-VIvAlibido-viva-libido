@@ -25,11 +25,14 @@ export async function POST() {
 
 async function runPipeline() {
   const date = getTodayDate();
+  const now = new Date();
+  const timeSlot = `${now.getHours().toString().padStart(2, '0')}:00`;
   const output: DailyOutput = {
     date,
     articles: [],
     socialPosts: [],
     radioBulletins: [],
+    radioTimeSlots: [],
     pipelineStatus: 'pending',
   };
 
@@ -67,8 +70,14 @@ async function runPipeline() {
       generateRadioBulletins(withImages),
     ]);
 
+    const taggedBulletins = radioBulletins.map(b => ({ ...b, timeSlot }));
     output.socialPosts = socialPosts;
-    output.radioBulletins = radioBulletins;
+    output.radioBulletins = taggedBulletins;
+    output.radioTimeSlots = [{
+      timeSlot,
+      generatedAt: now.toISOString(),
+      bulletins: taggedBulletins,
+    }];
     output.pipelineStatus = 'complete';
     output.completedAt = new Date().toISOString();
     await saveDailyOutput(output);

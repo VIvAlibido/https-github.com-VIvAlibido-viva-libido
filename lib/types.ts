@@ -39,6 +39,13 @@ export interface RadioBulletin {
   wordCount: number;
   estimatedSeconds: number;
   generatedAt: string;
+  timeSlot?: string; // e.g. "07:00", "10:00", "13:00"
+}
+
+export interface RadioTimeSlot {
+  timeSlot: string;
+  generatedAt: string;
+  bulletins: RadioBulletin[];
 }
 
 export interface DailyOutput {
@@ -46,6 +53,7 @@ export interface DailyOutput {
   articles: RankedArticle[];
   socialPosts: SocialPost[];
   radioBulletins: RadioBulletin[];
+  radioTimeSlots: RadioTimeSlot[];
   pipelineStatus: 'pending' | 'scraping' | 'ranking' | 'generating' | 'complete' | 'error';
   error?: string;
   completedAt?: string;
