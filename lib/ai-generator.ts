@@ -78,8 +78,12 @@ Respond ONLY with this JSON structure:
 }
 
 export async function generateRadioBulletins(articles: RankedArticle[]): Promise<RadioBulletin[]> {
+  // Import weather data
+  const { fetchIbizaWeather, formatWeatherBulletin } = await import('./weather');
+  const weather = await fetchIbizaWeather();
+
   const articleSummaries = articles
-    .slice(0, RADIO_BULLETIN_COUNT)
+    .slice(0, 6)
     .map((a, i) => `${i + 1}. [${a.source}] ${a.title}\n   ${a.description.slice(0, 200)}`)
     .join('\n\n');
 
@@ -87,19 +91,30 @@ export async function generateRadioBulletins(articles: RankedArticle[]): Promise
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 4000,
-      system: `You are a professional radio news writer for an Ibiza-based radio station.
-You write clear, broadcast-ready news bulletins that sound natural when read aloud.
+      system: `You are a professional radio news writer for a local Ibiza radio station.
+You ONLY write about things happening ON Ibiza and Formentera. Never include international news, national Spanish news, or news from other countries.
+Every story must be directly about life, events, politics, or happenings ON the islands of Ibiza or Formentera.
+You write clear, broadcast-ready bulletins that sound natural when read aloud.
 Each bulletin item should be approximately ${WORDS_PER_BULLETIN} words (about 25 seconds at broadcast pace).
 Always respond with valid JSON only.`,
       messages: [{
         role: 'user',
-        content: `Create a 2-minute radio news bulletin from these top ${RADIO_BULLETIN_COUNT} Ibiza & Formentera stories.
+        content: `Create a 2-minute radio news bulletin for Ibiza radio with EXACTLY this structure:
 
-Stories:
+1. NIEUWS 1: The most important LOCAL news happening ON Ibiza or Formentera (~${WORDS_PER_BULLETIN} words)
+2. NIEUWS 2: Second most important LOCAL news happening ON Ibiza or Formentera (~${WORDS_PER_BULLETIN} words)
+3. EVENTS & CULTUUR: A local event, festival, market, exhibition, cultural activity, or entertainment happening ON Ibiza or Formentera (~${WORDS_PER_BULLETIN} words)
+4. (Weather will be added separately, do NOT include weather)
+
+IMPORTANT: ALL stories must be about things happening ON Ibiza or Formentera. No international news, no national Spanish news, no news from other countries. Only local island news.
+
+Available stories:
 ${articleSummaries}
 
-Write ${RADIO_BULLETIN_COUNT} bulletin items, each ~${WORDS_PER_BULLETIN} words.
-Include an intro and outro for the full bulletin.
+Pick the 2 best LOCAL news stories for items 1 and 2. They must be about something happening on the island.
+For item 3, pick the most interesting local event, cultural, or entertainment story. If none of the articles is about events/culture, write about something typical happening on the island right now (markets, nightlife, beach season, local traditions, etc.).
+
+Include a warm, friendly intro and outro suitable for island radio.
 
 Create all content in 3 languages: English (en), Spanish (es), and Dutch (nl).
 Dutch should sound natural, as spoken in the Netherlands.
@@ -107,16 +122,12 @@ Spanish should be Castilian Spanish.
 
 Respond ONLY with this JSON:
 {
-  "intro": { "en": "Good morning, here's your Ibiza news update...", "es": "...", "nl": "..." },
-  "outro": { "en": "That's your Ibiza news update for today...", "es": "...", "nl": "..." },
+  "intro": { "en": "...", "es": "...", "nl": "..." },
+  "outro": { "en": "...", "es": "...", "nl": "..." },
   "bulletins": [
-    {
-      "number": 1,
-      "en": "bulletin text...",
-      "es": "bulletin text...",
-      "nl": "bulletin text...",
-      "articleIndex": 0
-    }
+    { "number": 1, "type": "news", "en": "...", "es": "...", "nl": "...", "articleIndex": 0 },
+    { "number": 2, "type": "news", "en": "...", "es": "...", "nl": "...", "articleIndex": 1 },
+    { "number": 3, "type": "event", "en": "...", "es": "...", "nl": "...", "articleIndex": 2 }
   ]
 }`
       }],
@@ -130,6 +141,7 @@ Respond ONLY with this JSON:
     const bulletins: RadioBulletin[] = [];
 
     for (const lang of languages) {
+      // Items 1-3 from AI
       for (const item of result.bulletins) {
         const bulletinText = item[lang];
         const wordCount = bulletinText.split(/\s+/).length;
@@ -142,13 +154,33 @@ Respond ONLY with this JSON:
           outro: result.outro[lang],
           articleIds: [articles[item.articleIndex]?.id].filter(Boolean),
           wordCount,
-          estimatedSeconds: Math.round(wordCount / 2.6), // ~2.6 words/sec broadcast pace
+          estimatedSeconds: Math.round(wordCount / 2.6),
           generatedAt: now,
         });
       }
+
+      // Item 4: Weather bulletin
+      const weatherText = weather
+        ? formatWeatherBulletin(weather, lang)
+        : lang === 'nl' ? 'Weerbericht momenteel niet beschikbaar.'
+        : lang === 'es' ? 'Pronóstico del tiempo no disponible en este momento.'
+        : 'Weather forecast currently unavailable.';
+
+      const weatherWords = weatherText.split(/\s+/).length;
+      bulletins.push({
+        bulletinNumber: 4,
+        language: lang,
+        text: weatherText,
+        intro: result.intro[lang],
+        outro: result.outro[lang],
+        articleIds: [],
+        wordCount: weatherWords,
+        estimatedSeconds: Math.round(weatherWords / 2.6),
+        generatedAt: now,
+      });
     }
 
-    console.log(`[AI] Generated ${bulletins.length} radio bulletins`);
+    console.log(`[AI] Generated ${bulletins.length} radio bulletins (incl. weather)`);
     return bulletins;
   } catch (error) {
     console.error('[AI] Failed to generate radio bulletins:', error instanceof Error ? error.message : error);
