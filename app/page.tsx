@@ -110,8 +110,8 @@ export default function Dashboard() {
         />
         <StatCard
           title="Radio Bulletins"
-          value={data?.radioBulletins.length || 0}
-          subtitle="5 items x 3 talen"
+          value={data?.radioTimeSlots?.length || 0}
+          subtitle="4x per dag (07, 11, 15, 19u)"
           color="amber"
         />
         <StatCard

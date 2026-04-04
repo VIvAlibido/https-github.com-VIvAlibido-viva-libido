@@ -14,13 +14,16 @@ function generateId(url: string): string {
   return crypto.createHash('md5').update(url).digest('hex').slice(0, 12);
 }
 
-// Core keywords that MUST appear in the title or description
+// Core keywords that MUST appear in the title
 const STRICT_KEYWORDS = [
   'ibiza', 'eivissa', 'formentera', 'pitiusas', 'pitiüses',
   'sant antoni', 'san antonio ibiza', 'santa eulalia', 'santa eulària',
   'sant josep', 'san josé ibiza', 'sant joan', 'dalt vila',
   'playa d\'en bossa', 'es canar', 'cala conta', 'es pujols',
   'la savina', 'sant francesc', 'ses salines ibiza',
+  // Events & culture locations
+  'pacha', 'amnesia ibiza', 'ushuaïa ibiza', 'hï ibiza', 'dc10',
+  'privilege ibiza', 'pikes ibiza', 'las dalias', 'hippy market',
 ];
 
 function isRelevant(title: string, description: string, source: FeedSource): boolean {
